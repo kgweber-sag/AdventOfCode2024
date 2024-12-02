@@ -8,10 +8,8 @@ class ListComparator:
 
     def read_file(self, path):
         with open(path, 'r') as f:
-            lines = f.readlines()
-            list1 = [int(line.split()[0]) for line in lines]
-            list2 = [int(line.split()[1]) for line in lines]
-        return list1, list2
+            list1, list2 = zip(*(map(int, line.split()) for line in f))
+        return list(list1), list(list2)
 
     def compare(self):
         return sum(abs(a - b) for a, b in zip(self.list1, self.list2))
