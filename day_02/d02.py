@@ -10,15 +10,12 @@ class SafeCheck():
 
     def safety_check(self, report):
         ascending = report[0] < report[1]
-        for i, value in enumerate(report):
-            if i == len(report) - 1:
-                return True
-            if abs(report[i] - report[i + 1]) > 3:
-                return False
-            if report[i] == report[i + 1]:
+        for i in range(len(report) - 1):
+            if abs(report[i] - report[i + 1]) > 3 or report[i] == report[i + 1]:
                 return False
             if (report[i] > report[i + 1] and ascending) or (report[i] < report[i + 1] and not ascending):
                 return False
+        return True
 
     def score_safety_check(self):
         for line in self.data:
