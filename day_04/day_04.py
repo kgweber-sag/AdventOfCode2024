@@ -7,7 +7,6 @@ class FindXMAS:
         self.rows = len(self.data)
         self.cols = len(self.data[0])
         self.xmas_found = 0
-        self.knockout_set = np.zeros((self.rows, self.cols))
 
     def _read_file(self, file_path):
         with open(file_path, 'r') as file:
@@ -17,37 +16,39 @@ class FindXMAS:
 
     def _check_xmas(self, r, c):
 
-        check_letters = ['X','M', 'A', 'S']
-        check_positions = {x:[] for x in check_letters}
-        check_positions['X'] = [(r, c)]
-        for index, letter in enumerate(check_letters[:-1]):
-            for position in check_positions[letter]:
-                for i in range(-1, 2):
-                    for j in range(-1, 2):
-                        if i == 0 and j == 0:
-                            continue
-                        check_row = position[0]+ i
-                        check_col = position[1] + j
-                        if check_row  >= 0 and check_row < self.rows and check_col  >= 0 and check_col < self.cols:
-                            if self.data[check_row ][check_col ] == check_letters[index + 1]:
-                                if check_letters[index+1] == 'S':
-                                    self.xmas_found += 1
+        check_letters =[x for x in self.xmas]
 
-                                check_positions[check_letters[index+1]].append((check_row , check_col))
-                                self.knockout_set[check_row, check_col] = 1
-        print(check_positions)
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0:
+                    continue
+                check_row = r + i
+                check_col = c + j
+                if 0 <= check_row < self.rows and 0 <= check_col < self.cols:
+                    if self.data[check_row ][check_col ] == check_letters[1]:
+                        # we know our direction change is the i, j vector
+                        for index, letter in enumerate(check_letters[2:]):
+                            row_delta = i*(index+2)
+                            col_delta = j*(index+2)
+                            if 0 <= (r + row_delta) < self.rows and 0 <= (c + col_delta) < self.cols:
+                                if self.data[r + row_delta][c + col_delta] == letter:
+                                    if index+3 == len(self.xmas):
+                                        self.xmas_found += 1
+                                    else:
+                                        continue
+                                else:
+                                    break
+
 
     def find_xmas(self):
         for r in range(self.rows):
             for c in range(self.cols):
                 if self.data[r][c] == self.xmas[0]:
-                    print(r,c)
                     self._check_xmas(r, c)
 
 
 
 if __name__ == '__main__':
-    fx = FindXMAS('input_d04_test.txt')
+    fx = FindXMAS('input_d04.txt')
     fx.find_xmas()
     print(fx.xmas_found)
-    print(fx.knockout_set)
