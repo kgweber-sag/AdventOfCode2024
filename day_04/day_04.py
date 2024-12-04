@@ -8,15 +8,16 @@ class XMASFinder:
     TARGET = 'XMAS'
 
     def __init__(self, file_path):
-        self.grid, self.bfstring = self.read_data(file_path)
+        self.grid = self.read_data(file_path)
         self.rows, self.cols = self.grid.shape
+        self.masmatches = []
 
     def read_data(self, file_path: str):
         with open(file_path) as f:
             lines = [x.strip() for x in f.readlines()]
         grid = np.array([[x for x in line] for line in lines])
-        bigfatstring = ''.join(lines)
-        return grid, bigfatstring
+
+        return grid
 
     def is_valid_pos(self, row: int, col: int) -> bool:
         return 0 <= row < self.rows and 0 <= col < self.cols
@@ -40,38 +41,30 @@ class XMASFinder:
 
         return count
 
-    def check_a_mas(self, expr):
-        start = 0
-        while start < len(self.bfstring) + self.cols + 1:
-                match = re.search(expr, self.bfstring[start:])
-                if match:
-                    self.matches += 1
-                    if np.mod(match.start() + 4, self.cols) == 0:
-                        start += match.start() + 4
-                    else:
-                        start += match.start() + 1
-                    print(match)
-                else:
-                    break
+    def get_corners(self, r1, c1, r2, c2):
+        corners=[self.grid[r1, c1], self.grid[r1, c2], self.grid[r2, c1], self.grid[r2, c2]]
+        return corners
 
-    def find_masmas(self):
+    def find_mas(self):
+        for i in range(1, self.rows - 1):
+            for j in range(1, self.cols - 1):
+                # Check if center is 'A'
+                if self.grid[i, j] != 'A':
+                    continue
 
-        print(self.bfstring)
-        exprs = [r'(M.S).{'+str(self.cols-3)+'}(.A.).{'+str(self.cols-3)+'}(M.S)',
-                 r'(S.M).{'+str(self.cols-3)+'}(.A.).{'+str(self.cols-3)+'}(S.M)',
-                 r'(M.M).{'+str(self.cols-3)+'}(.A.).{'+str(self.cols-3)+'}(S.S)',
-                 r'(S.S).{'+str(self.cols-3)+'}(.A.).{'+str(self.cols-3)+'}(M.M)']
+                # Check corners
+                corners = self.get_corners(i-1, j-1, i+1, j+1)
+                if corners in (['M', 'M', 'S', 'S'], ['S', 'S', 'M', 'M'],
+                               ['S', 'M', 'S', 'M'], ['M', 'S', 'M', 'S']):
 
-        self.matches = 0
+                    self.masmatches.append((i, j))
 
-        for expr in exprs:
-            self.check_a_mas(expr)
-
-        return self.matches
+        return len(self.masmatches)
 
 
 if __name__ == '__main__':
-    xf = XMASFinder('input_d04_test.txt')
-    # paths =  XMASFinder(grid).count_paths()
-    # print(paths)
-    print(xf.find_masmas())
+    xf = XMASFinder('input_d04.txt')
+    paths =  xf.count_paths()
+    print(paths)
+    # print(xf.grid)
+    print(xf.find_mas())
