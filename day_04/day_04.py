@@ -70,7 +70,6 @@ class XMASFinder:
         """Find all MAS patterns with 'A' in center."""
         self.mas_matches = []
 
-        # Use numpy's advanced indexing to find all 'A' positions
         a_positions = np.argwhere(self.grid == 'A')
 
         for i, j in a_positions:
