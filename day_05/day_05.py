@@ -48,23 +48,37 @@ class PrinterSorter:
     def get_middle_item(update):
         return update[len(update) // 2]
 
-    def correct_update(self, update):
-        checked=set()
-        order=[]
+    def visit(self, node, path=None):
+        if path is None:
+            path = set()
 
-        def visit(node):
-            if node in checked:
-                return
-            checked.add(node)
-            for dependency in self.dependency_graph[node]:
-                visit(dependency)
-            order.append(node)
+        if node in path:
+            return  # Skip if cyclic
+
+        if node in self.checked:
+            return
+
+        path.add(node)
+        self.checked.add(node)
+
+        # Must process nodes that should come *after* the current node
+        for required_after in self.rules.get(node, []):
+            if required_after in self.update_set:
+                self.visit(required_after, path)
+
+        path.remove(node)
+        self.order.append(node)
+
+    def correct_update(self, update):
+        self.checked = set()
+        self.order = []
+        self.update_set = set(update)
 
         for page in update:
-            if page not in checked:
-                visit(page)
+            if page not in self.checked:
+                self.visit(page)
 
-        return [x for x in order if x in update][::-1]
+        return [x for x in self.order if x in update][::-1]
 
     def check_all_updates(self):
 
@@ -72,13 +86,16 @@ class PrinterSorter:
             if not self.check_update(update):
                 corrected_update = self.correct_update(update)
                 self.incorrect_middle_sum += self.get_middle_item(corrected_update)
+                if not self.check_update(corrected_update):
+                    print("Failed to correct update:", update)
+                    print("Corrected update:", corrected_update)
             else:
                 self.correct_middle_sum += self.get_middle_item(update)
 
 
 
 if __name__ == '__main__':
-    ps = PrinterSorter('input_d05_test.txt')
+    ps = PrinterSorter('input_d05.txt')
     ps.check_all_updates()
     print("Correct middle sum:", ps.correct_middle_sum)
     print("Corrected middle sum:", ps.incorrect_middle_sum)
